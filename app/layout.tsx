@@ -1,7 +1,5 @@
-import { GlobalToaster } from '@/components/ui/f/global-toaster'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Suspense } from 'react'
 import './globals.css'
 
 const geistSans = Geist({
@@ -26,12 +24,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang='en'>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				{children}
-				<Suspense>
-					<GlobalToaster />
-				</Suspense>
-			</body>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
 		</html>
 	)
 }
