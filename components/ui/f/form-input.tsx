@@ -2,13 +2,7 @@ import { cn } from '@/lib/utils'
 import { Label } from '../label'
 import { Input } from './c-input'
 import { FormError } from './form-error'
-
-type ActionState = {
-	values: Record<string, string>
-	fieldErrors: Record<string, string[]>
-	globalError: string | null
-	success: boolean
-}
+import { ActionState } from './types'
 
 export function FormField({
 	className,

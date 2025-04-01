@@ -1,9 +1,17 @@
 {
 	"name": "form",
 	"type": "registry:block",
-	"dependencies": ["@radix-ui/react-alert-dialog", "@radix-ui/react-label", "@radix-ui/react-slot", "next-themes", "sonner", "zod"],
+	"dependencies": [
+		"@radix-ui/react-alert-dialog",
+		"@radix-ui/react-checkbox",
+		"@radix-ui/react-label",
+		"@radix-ui/react-slot",
+		"next-themes",
+		"sonner",
+		"zod"
+	],
 	"devDependencies": [],
-	"registryDependencies": ["alert-dialog", "button", "input", "label", "sonner"],
+	"registryDependencies": ["alert-dialog", "button", "checkbox", "input", "label", "sonner"],
 	"files": [
 		{
 			"path": "./components/ui/f/action-button.tsx",
@@ -31,18 +39,28 @@
 			"type": "registry:ui"
 		},
 		{
+			"path": "./components/ui/f/form-checkbox.tsx",
+			"content": "import * as CheckboxPrimitive from '@radix-ui/react-checkbox'\nimport { Checkbox } from '../checkbox'\nimport { Label } from '../label'\nimport { FormError } from './form-error'\nimport { ActionState } from './types'\n\nexport function FormCheckbox({\n\tclearOnError = false,\n\tid: _id,\n\tlabel,\n\tname,\n\tstate,\n\t...props\n}: React.ComponentProps<typeof CheckboxPrimitive.Root> & {\n\tclearOnError?: boolean\n\tid: string\n\tlabel: React.ReactNode | string\n\tname: string\n\tstate?: ActionState\n}) {\n\tconst id = String(name ?? _id)\n\tconst value = clearOnError ? '' : state?.values?.[id] ?? ''\n\tconst error = state?.fieldErrors?.[id]?.[0]\n\n\treturn (\n\t\t<div className='grid gap-2'>\n\t\t\t<div className='flex items-center gap-2'>\n\t\t\t\t<Checkbox id={id} name={id} defaultValue={value} {...props} />\n\t\t\t\t<Label htmlFor={id}>{label}</Label>\n\t\t\t</div>\n\t\t\t<FormError value={error ? [error] : []} />\n\t\t</div>\n\t)\n}\n",
+			"type": "registry:ui"
+		},
+		{
 			"path": "./components/ui/f/form-error.tsx",
 			"content": "'use client'\n\nimport { cn } from '@/lib/utils'\nimport { useEffect } from 'react'\nimport { useFormStatus } from 'react-dom'\nimport { toast } from 'sonner'\n\nexport function FormError({ hidden = false, value }: { hidden?: boolean; value: string[] | undefined }) {\n\tconst { pending } = useFormStatus()\n\n\tuseEffect(() => {\n\t\tif (!hidden) return\n\t\tif (value?.length && value.length > 0) toast.error(`FATAL: ${value[0]}`)\n\t}, [hidden, value])\n\n\tif (hidden || !value || !value.length) return null\n\treturn <div className={cn('text-sm text-destructive', { hidden: pending })}>{value[0]}</div>\n}\n",
 			"type": "registry:ui"
 		},
 		{
 			"path": "./components/ui/f/form-input.tsx",
-			"content": "import { cn } from '@/lib/utils'\nimport { Label } from '../label'\nimport { Input } from './c-input'\nimport { FormError } from './form-error'\n\ntype ActionState = {\n\tvalues: Record<string, string>\n\tfieldErrors: Record<string, string[]>\n\tglobalError: string | null\n\tsuccess: boolean\n}\n\nexport function FormField({\n\tclassName,\n\tclearOnError = false,\n\tid: _id,\n\tlabel,\n\tname,\n\tstate,\n\t...props\n}: React.ComponentProps<'input'> & { clearOnError?: boolean; label: React.ReactNode | string; state?: ActionState }) {\n\tconst id = String(name ?? _id)\n\tconst value = clearOnError ? '' : state?.values?.[id] ?? ''\n\tconst error = state?.fieldErrors?.[id]?.[0]\n\n\treturn (\n\t\t<div className={cn('grid gap-2', className)}>\n\t\t\t{label && (typeof label === 'string' ? <Label htmlFor={id}>{label}</Label> : label)}\n\t\t\t<Input id={id} name={id} defaultValue={value} {...props} />\n\t\t\t<FormError value={error ? [error] : []} />\n\t\t</div>\n\t)\n}\n",
+			"content": "import { cn } from '@/lib/utils'\nimport { Label } from '../label'\nimport { Input } from './c-input'\nimport { FormError } from './form-error'\nimport { ActionState } from './types'\n\nexport function FormField({\n\tclassName,\n\tclearOnError = false,\n\tid: _id,\n\tlabel,\n\tname,\n\tstate,\n\t...props\n}: React.ComponentProps<'input'> & { clearOnError?: boolean; label: React.ReactNode | string; state?: ActionState }) {\n\tconst id = String(name ?? _id)\n\tconst value = clearOnError ? '' : state?.values?.[id] ?? ''\n\tconst error = state?.fieldErrors?.[id]?.[0]\n\n\treturn (\n\t\t<div className={cn('grid gap-2', className)}>\n\t\t\t{label && (typeof label === 'string' ? <Label htmlFor={id}>{label}</Label> : label)}\n\t\t\t<Input id={id} name={id} defaultValue={value} {...props} />\n\t\t\t<FormError value={error ? [error] : []} />\n\t\t</div>\n\t)\n}\n",
 			"type": "registry:ui"
 		},
 		{
 			"path": "./components/ui/f/global-toaster.tsx",
 			"content": "'use client'\n\nimport { usePathname, useRouter, useSearchParams } from 'next/navigation'\nimport { useEffect } from 'react'\nimport { toast } from 'sonner'\nimport { Toaster } from '../sonner'\n\nexport function GlobalToaster() {\n\tconst pathname = usePathname()\n\tconst router = useRouter()\n\tconst searchParams = useSearchParams()\n\n\tuseEffect(() => {\n\t\tconst message = searchParams.get('message')\n\t\tconst error = searchParams.get('error')\n\t\tconst success = searchParams.get('success')\n\n\t\tif (!message && !error && !success) return\n\t\tconst toastType = message ? toast : success ? toast.success : toast.error\n\t\ttoastType(message ? message : success ? success : error)\n\n\t\tconst newSearchParams = new URLSearchParams(searchParams.toString())\n\t\tconst paramsToRemove = ['message', 'error', 'success']\n\t\tparamsToRemove.forEach((param) => newSearchParams.delete(param))\n\t\tconst redirectPath = `${pathname}?${newSearchParams.toString()}`\n\t\trouter.replace(redirectPath, { scroll: false })\n\t}, [pathname, router, searchParams])\n\n\treturn <Toaster position='top-center' richColors />\n}\n",
+			"type": "registry:ui"
+		},
+		{
+			"path": "./components/ui/f/types.ts",
+			"content": "export type ActionState = {\n\tvalues: Record<string, string>\n\tfieldErrors: Record<string, string[]>\n\tglobalError: string | null\n\tsuccess: boolean\n}\n",
 			"type": "registry:ui"
 		},
 		{
